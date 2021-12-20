@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+
+<body>
+	<div>
+		<button onClick="deviceMotionRequest()">Click</button>
+		<span id="x">0</span>
+
+	</div>
+	<script>
+		let x = 0;
+		let beforeMotion = 0;
+		let count = 0;
+
+		const saveMotion = () => {
+			beforeMotion = x; //0.7秒前の値を保存
+			return beforeMotion;
+		}
+
+		function deviceMotionRequest() {
+			if (DeviceMotionEvent.requestPermission) {
+				DeviceMotionEvent.requestPermission().then(permissionState => {
+						if (permissionState === 'granted') {
+							const motion = () => {
+								window.addEventListener("devicemotion", function (event) {
+									if (!event.accelerationIncludingGravity) {
+										alert('event.accelerationIncludingGravity is null');
+										return;
+									}
+									x = Math.round(event.accelerationIncludingGravity.x);
+									document.getElementById('x').innerHTML = x;
+									return x;
+								});
+								// xの値が0.7秒以内に±5以上になった時にカウント
+								let signX = Math.sign(x); // Math.sign(el); 正の数なら1 負の数なら-1を返す
+								let signBeforeMotion = Math.sign(beforeMotion);
+								let num = 3;
+								if (Math.abs(signX + signBeforeMotion) == 2) {
+									// 正の数同士or負の数同士 Math.abs(el); 符号を外している
+									if (Math.abs(beforeMotion - x) >= num) {// ex. -9 - -4 および、 12 - 5
+										count++;
+										console.log(count);
+										// console.log(count,beforeMotion,x,"ok1");
+									}
+								} else if (signX + signBeforeMotion == 0 || Math.abs(signX + signBeforeMotion) == 1) {
+									// 正の数と負の数 or 0を含む
+									if (Math.abs(beforeMotion) + Math.abs(x) >= num) {// ex -3 + 2 および、 0 + -5
+										count++;
+										// console.log(count,beforeMotion,x,"ok2");
+										console.log(count);
+									}
+								}
+								saveMotion();
+								setTimeout(motion, 700);
+							};
+							motion();
+						}
+					})
+					.catch(console.error);
+			} else {
+				alert('DeviceMotionEvent.requestPermission is not found')
+			}
+		}
+	</script>
+</body>
+<style>
+
+</style>
+
+</html>

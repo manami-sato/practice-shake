@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+
+<body>
+	<div>
+		<button onClick="deviceMotionRequest()">Click</button>
+		<span id="x">0</span>
+		<span id="y">0</span>
+		<span id="z">0</span>
+
+	</div>
+	<script>
+		const start = document.querySelector(".start");
+		const end = document.querySelector(".end");
+		let x = 0;
+		let y = 0;
+		let z = 0;
+		let beforeMotion = 0;
+		let count = 0;
+
+		const saveMotion = () => {
+			beforeMotion = x; //0.3秒前の値を保存
+			return beforeMotion;
+		}
+
+		function deviceMotionRequest() {
+			if (DeviceMotionEvent.requestPermission) {
+				DeviceMotionEvent.requestPermission().then(permissionState => {
+						if (permissionState === 'granted') {
+							const motion = () => {
+								window.addEventListener("devicemotion", function (event) {
+									if (!event.accelerationIncludingGravity) {
+										alert('event.accelerationIncludingGravity is null');
+										return;
+									}
+									x = Math.floor(event.accelerationIncludingGravity.x);
+									y = Math.floor(event.accelerationIncludingGravity.y);
+									z = Math.floor(event.accelerationIncludingGravity.z);
+									document.getElementById('x').innerHTML = x;
+									document.getElementById('y').innerHTML = y;
+									document.getElementById('z').innerHTML = z;
+									return x;
+								});
+								// 単純に0.7秒ごとに動きがあったらカウントしてるだけ
+								// 動きの範囲は関係ない
+								if (beforeMotion > x || beforeMotion < x) {
+									count++;
+									console.log(count,beforeMotion,x);
+								}
+								saveMotion();
+								setTimeout(motion, 700);
+							};
+							motion();
+						}
+					})
+					.catch(console.error);
+			} else {
+				alert('DeviceMotionEvent.requestPermission is not found')
+			}
+		}
+	</script>
+</body>
+<style>
+	.wrap {
+		width: 100vw;
+		height: 100vh;
+		background: tomato;
+	}
+</style>
+
+</html>
